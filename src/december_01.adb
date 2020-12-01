@@ -15,6 +15,7 @@ begin -- December_01
    while not End_Of_File (Input_File) loop
       Append (Expense, Natural'Value (Get_Line (Input_File)));
    end loop; -- End_Of_File (Input_File)
+   Close (Input_File);
    for I in Positive range 1 .. Last_Index (Expense) - 1 loop
       for J in Positive range I + 1 .. Last_Index (Expense) loop
          if Expense (I) + Expense (J) = 2020 then
