@@ -19,7 +19,7 @@ procedure December_02 is
    Occurance_Count : Natural;
    Valid_Count : Natural := 0;
 
-begin -- December_01
+begin -- December_02
    Open (Input_File, In_File, "december_02.txt");
    while not End_Of_File (Input_File) loop
       Get (Input_File, Least);
@@ -48,7 +48,7 @@ begin -- December_01
    Put_Line ("Part Two");
    Valid_Count := 0;
    reset (Input_File);
-   -- Line formatting checks are mot repeated as the second read will not occur
+   -- Line formatting checks are not repeated as the second read will not occur
    -- if any assertion fails in the first read;
    while not End_Of_File (Input_File) loop
       Get (Input_File, First);
