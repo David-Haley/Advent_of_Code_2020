@@ -1,5 +1,4 @@
 with Ada.Text_IO; use  Ada.Text_IO;
-with Ada.Strings.Maps; use Ada.Strings.Maps;
 with Ada.Containers; use Ada.Containers;
 with Ada.Containers.Vectors;
 
