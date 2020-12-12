@@ -89,9 +89,9 @@ procedure December_12 is
    begin -- Move
       case Instruction.Direction is
          when North =>
-            New_Nav_State.Y := Nav_State.Y - Instruction.Step;
-         when South =>
             New_Nav_State.Y := Nav_State.Y + Instruction.Step;
+         when South =>
+            New_Nav_State.Y := Nav_State.Y - Instruction.Step;
          when East =>
             New_Nav_State.X := Nav_State.X + Instruction.Step;
          when West =>
@@ -103,9 +103,9 @@ procedure December_12 is
          when Forward =>
             case Nav_State.Heading is
             when North =>
-               New_Nav_State.Y := Nav_State.Y - Instruction.Step;
-            when South =>
                New_Nav_State.Y := Nav_State.Y + Instruction.Step;
+            when South =>
+               New_Nav_State.Y := Nav_State.Y - Instruction.Step;
             when East =>
                New_Nav_State.X := Nav_State.X + Instruction.Step;
             when West =>
@@ -123,9 +123,9 @@ procedure December_12 is
    begin -- Move_2
       case Instruction.Direction is
          when North =>
-            New_Nav_State.Way_Y := Nav_State.Way_Y - Instruction.Step;
-         when South =>
             New_Nav_State.Way_Y := Nav_State.Way_Y + Instruction.Step;
+         when South =>
+            New_Nav_State.Way_Y := Nav_State.Way_Y - Instruction.Step;
          when East =>
             New_Nav_State.Way_X := Nav_State.Way_X + Instruction.Step;
          when West =>
@@ -144,14 +144,14 @@ procedure December_12 is
                   null; -- do nothing Way_X and Way_Y already assigned old
                   -- values also may not exist in input data.
                when 90 =>
-                  New_Nav_State.Way_X := -Nav_State.Way_Y;
-                  New_Nav_State.Way_Y := Nav_State.Way_X;
+                  New_Nav_State.Way_X := Nav_State.Way_Y;
+                  New_Nav_State.Way_Y := -Nav_State.Way_X;
                when 180 =>
                   New_Nav_State.Way_X := -Nav_State.Way_X;
                   New_Nav_State.Way_Y := -Nav_State.Way_Y;
                when 270 =>
-                  New_Nav_State.Way_X := Nav_State.Way_Y;
-                  New_Nav_State.Way_Y := -Nav_State.Way_X;
+                  New_Nav_State.Way_X := -Nav_State.Way_Y;
+                  New_Nav_State.Way_Y := Nav_State.Way_X;
                end case; -- Rotation
             end; -- rotation
          when Forward =>
@@ -185,14 +185,14 @@ begin -- December_12
       Skip_Line (Input_File);
    end loop; -- not End_Of_File (Input_File)
    Close (Input_File);
-   Nav_State := (X => 0, Y => 0, Heading => East, Way_X => 10, Way_Y => -1);
+   Nav_State := (X => 0, Y => 0, Heading => East, Way_X => 10, Way_Y => 1);
    -- Way_X and Way_Y initialisation not required for part one
    for I in Iterate (Instruction_List) loop
       Nav_State := Move (Nav_State, Instruction_List (I));
    end loop; -- I in Iterate (Instruction_List)
    Put_Line ("Distance (Part one):" &
                Coordinates'Image (abs (Nav_State.X) + abs (Nav_State.Y)));
-   Nav_State := (X => 0, Y => 0, Heading => East, Way_X => 10, Way_Y => -1);
+   Nav_State := (X => 0, Y => 0, Heading => East, Way_X => 10, Way_Y => 1);
    -- Heading initialisation not required for part two
    for I in Iterate (Instruction_List) loop
       Nav_State := Move_2 (Nav_State, Instruction_List (I));
