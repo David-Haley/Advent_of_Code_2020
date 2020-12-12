@@ -166,7 +166,7 @@ procedure December_12 is
    Instruction_List : Instruction_Lists.Vector := Empty_Vector;
    Nav_State : Nav_States;
 
-begin -- December_11
+begin -- December_12
    Open (Input_File, In_File, "december_12.txt");
    while not End_Of_File (Input_File) loop
       Get (Input_File, Direction);
