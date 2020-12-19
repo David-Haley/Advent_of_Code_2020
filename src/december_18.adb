@@ -12,7 +12,8 @@ procedure December_18 is
    subtype Operands is Long_Long_Integer range 0 .. Long_Long_Integer'Last;
 
    function Evaluate (Expression : in Unbounded_String;
-                      Start_At : in out Positive) return Operands is
+                      Start_At : in out Positive;
+                      Part_Two : in Boolean := False) return Operands is
 
       Plus : constant Character := '+';
       Mult : constant Character := '*';
@@ -47,7 +48,7 @@ procedure December_18 is
 
       Current_Opertor : Operators := None;
       Operand_Count : Operand_Counts := 0;
-      Operand : Operand_Array := (0, 0);
+      Operand : Operand_Array := (0, 0); -- Initialisation for bebuging only
       First : Positive;
       Last : Natural;
 
@@ -60,9 +61,7 @@ procedure December_18 is
             Start_At := Last + 1;
             Operand (Operand_Count) :=
               Operands'Value (Slice (Expression, First, Last));
-            if Operand_Count = 2 then
-               Operate (Current_Opertor, Operand_Count, Operand);
-            end if; -- Operand_Count = 2
+            Operate (Current_Opertor, Operand_Count, Operand);
          elsif  Element (Expression, Start_At) = Plus then
             Assert (Operand_Count = 1, "+ with no first operand");
             Start_At := Start_At + 1;
@@ -71,10 +70,19 @@ procedure December_18 is
             Assert (Operand_Count = 1, "* with no first operand");
             Start_At := Start_At + 1;
             Current_Opertor := Mult;
+            if Part_Two then
+               -- Mult lower precedence operator, defer evaluation
+               Operand_Count := Operand_Count + 1;
+               Operand (Operand_Count) := Evaluate (Expression, Start_At,
+                                                    Part_Two);
+               Operate (Current_Opertor, Operand_Count, Operand);
+               return Operand (1);
+            end if;
          elsif Element (Expression, Start_At) = Lp then
             Start_At := Start_At + 1;
             Operand_Count := Operand_Count + 1;
-            Operand (Operand_Count) := Evaluate (Expression, Start_At);
+            Operand (Operand_Count) := Evaluate (Expression, Start_At,
+                                                 Part_Two);
             Operate (Current_Opertor, Operand_Count, Operand);
          elsif Element (Expression, Start_At) = Rp then
             Start_At := Start_At + 1;
@@ -94,17 +102,24 @@ procedure December_18 is
    Input_File : File_Type;
    Expression : Unbounded_String;
    Start_At : Positive;
-   Sum : Operands := 0;
+   Sum : Operands;
 
 begin -- December_18
    Open (Input_File, In_File, "december_18.txt");
-   -- Open (Input_File, In_File, "example_18.txt");
+   Sum := 0;
+   while not End_Of_File (Input_File) loop
+       Get_Line (Input_File, Expression);
+       Start_At := 1;
+       Sum := Sum + Evaluate (Expression, Start_At);
+   end loop; -- not End_Of_File (Input_File)
+   Put_Line ("Sum (Part one):" & Operands'Image (Sum));
+   Reset (Input_File);
+   Sum := 0;
    while not End_Of_File (Input_File) loop
       Get_Line (Input_File, Expression);
       Start_At := 1;
-      -- Put_Line (Operands'Image (Evaluate (Expression, Start_At)));
-      Sum := Sum + Evaluate (Expression, Start_At);
+      Sum := Sum + Evaluate (Expression, Start_At, True);
    end loop; -- not End_Of_File (Input_File)
+   Put_Line ("Sum (Part two):" & Operands'Image (Sum));
    Close (Input_File);
-   Put_Line ("Sum (Part one):" & Operands'Image (Sum));
 end December_18;
