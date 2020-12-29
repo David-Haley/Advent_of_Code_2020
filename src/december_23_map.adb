@@ -6,7 +6,7 @@ with Ada.Containers.Ordered_Maps;
 
 procedure December_23_map is
 
-   subtype Cup_Labels is Long_Long_Integer range 1 .. Long_Long_Integer'Last;
+   subtype Cup_Labels is Positive;
 
    Part_Two_Cups : constant Cup_Labels := 1000000;
 
@@ -50,27 +50,27 @@ procedure December_23_map is
       end loop; -- I in Iterate (Game.Cup)
    end Read_Game;
 
-   function Dec (Game : in Games;
-                 Cup_Label : in Cup_Labels) return Cup_Labels is
-
-   begin -- Dec
-      if Cup_Label = Cup_Labels'First then
-         return Game.Last_Label;
-      else
-         return Cup_Labels'Pred (Cup_Label);
-      end if; -- Cup_Label = Cup_Labels'First
-   end Dec;
-
-   function In_Pick_Up (Game : in Games;
-                        Label : in Cup_Labels) return Boolean is
-
-   begin -- In_Pick_Up
-      return Label = Game.Pick_Up_First or
-        Label = Game.Cup (Game.Pick_Up_First) or
-        Label = Game.Pick_Up_Last;
-   end In_Pick_Up;
-
    procedure Play (Game : in out Games; Moves : in Positive) is
+
+      function Dec (Game : in Games;
+                    Cup_Label : in Cup_Labels) return Cup_Labels is
+
+      begin -- Dec
+         if Cup_Label = Cup_Labels'First then
+            return Game.Last_Label;
+         else
+            return Cup_Labels'Pred (Cup_Label);
+         end if; -- Cup_Label = Cup_Labels'First
+      end Dec;
+
+      function In_Pick_Up (Game : in Games;
+                           Label : in Cup_Labels) return Boolean is
+
+      begin -- In_Pick_Up
+         return Label = Game.Pick_Up_First or
+           Label = Game.Cup (Game.Pick_Up_First) or
+           Label = Game.Pick_Up_Last;
+      end In_Pick_Up;
 
       Cursor, Destination : Cup_Labels;
 
@@ -128,5 +128,7 @@ begin -- December_23_map
    Play (Game, 10000000);
    Star_1 := Game.Cup (1); -- Cup next to 1
    Star_2 := Game.Cup (Star_1);
-   Put_Line ("Product (Part two):" & Cup_Labels'Image (Star_1 * Star_2));
+   Put_Line ("Product (Part two):" &
+               Long_Long_Integer'Image (Long_Long_Integer (Star_1) *
+                 Long_Long_Integer (Star_2)));
 end December_23_map;
