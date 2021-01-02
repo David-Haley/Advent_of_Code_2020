@@ -6,6 +6,7 @@ with Ada.Strings.Maps.Constants; use Ada.Strings.Maps.Constants;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Assertions; use Ada.Assertions;
 with Ada.Containers.Vectors;
+with DJH.Chinese_Remainder;
 
 procedure December_13 is
 
@@ -24,13 +25,24 @@ procedure December_13 is
      Ada.Containers.Vectors (Positive, Bus_List_Elements);
    use Bus_Lists;
 
-   function "<" (Left, Right : Bus_List_Elements) return Boolean is
+   procedure Part_Two (Bus_List : in Bus_Lists.Vector) is
 
-   begin -- "<"
-      return Left.Bus_ID < Right.Bus_ID;
-   end "<";
+      subtype Index_Type is Positive range 1 .. Last_Index (Bus_List);
 
-   package Bus_ID_Sort is new Bus_Lists.Generic_Sorting;
+      package CR is new DJH.Chinese_Remainder (Index_Type, Long_Long_Integer);
+
+      Bus_Array : CR.Rem_Mod_Arrays;
+      Time_Stamp, N : CR.Positive_Type;
+
+   begin -- Part_Two
+      for I in Index_Type loop
+         Bus_Array (I) := (A => (Bus_List (I).Bus_ID - Bus_List (I).Offset) mod
+                             Bus_List (I).Bus_ID,
+                           N => Bus_List (I).Bus_ID);
+      end loop; -- I in Index_Type
+      CR.Solve (Bus_Array, Time_Stamp, N);
+      Put_Line ("Time Stamp (Part two):" & Time_Stamp'Img);
+   end Part_Two;
 
    Delimiter : constant Character_Set := To_Set (',');
    Input_File : File_Type;
@@ -45,7 +57,6 @@ procedure December_13 is
 
 begin -- December_13
    Open (Input_File, In_File, "december_13.txt");
-   -- Open (Input_File, In_File, "example_13.txt");
    Time_IO.Get (Input_File, Time_Stamp);
    Skip_Line (Input_File);
    Get_Line (Input_File, Text);
@@ -61,6 +72,7 @@ begin -- December_13
       Start_At := Last + 1;
       Bus_List_Element.Offset := Bus_List_Element.Offset + 1;
    end loop; -- Start_At < Length (Text)
+   -- Find first bus
    for B in Iterate (Bus_List) loop
       if Bus_List (B).Bus_ID - (Time_Stamp mod Bus_List (B).Bus_ID) <
         Time_To_Next_Bus then
@@ -71,30 +83,5 @@ begin -- December_13
    end loop; -- B in Iterate (Bus_List)
    Put_Line ("BusID * wait time (Part one):" &
                Time_Stamps'Image (Time_Stamps (Next_Bus) * Time_To_Next_Bus));
-   declare
-      N : Time_Stamps := 1; -- number of runs of bus with largest Bus_ID
-      B : Bus_Lists.Cursor;
-      Found : Boolean;
-   begin -- Part two
-      Bus_ID_Sort.Sort (Bus_List); -- sorted smallest to largest Bus_ID
-      while N * Last_Element (Bus_List).Bus_ID <
-        Last_Element (Bus_List).Offset loop
-         N := N + 1;
-      end loop; --  N * Last_Element (Bus_List).Bus_ID < ...
-      -- Ensures that the first Time_Stamp is 0 or more
-      loop -- N
-         B := Bus_Lists.Last (Bus_List);
-         Time_Stamp := N * Bus_List (B).Bus_ID - Bus_List (B).Offset;
-         Found := True;
-         Previous (B);
-         while B /= No_Element and Found loop
-            Found :=
-              (Time_Stamp + Bus_List (B).Offset) mod Bus_List (B).Bus_ID = 0;
-            Previous (B);
-         end loop; -- B /= No_Element and then ...
-         exit when Found;
-         N := N + 1;
-      end loop; -- N
-      Put_Line ("Time_Stamp (Part two)" & Time_Stamps'Image (Time_Stamp));
-   end; -- Part two
+   Part_Two (Bus_List);
 end December_13;
