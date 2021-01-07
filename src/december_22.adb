@@ -125,8 +125,8 @@ procedure December_22 is
                Game.Drawn_Card (P) := First_Element (Game.Deck (P));
                Delete_First (Game.Deck (P));
             end loop; -- P in Player_Indices
-            if Cards (Length (Game.Deck (P1))) >= Game.Drawn_Card (P1) and
-              Cards (Length (Game.Deck (P2))) >= Game.Drawn_Card (P2) then
+            if Length (Game.Deck (P1)) >= Count_Type (Game.Drawn_Card (P1)) and
+              Length (Game.Deck (P2)) >= Count_Type (Game.Drawn_Card (P2)) then
                -- Start recursive play, by copying cards
                for P in Player_Indices loop
                   Clear (Next_Game.Deck (P));
@@ -143,7 +143,7 @@ procedure December_22 is
                else
                   Game.Last_Winner := P2;
                end if; -- Game.Drawn_Card (P1) > Game.Drawn_Card (P2)
-            end if; -- Cards (Length (Game.Deck (P1))) >= Game.Drawn_Card  ...
+            end if; -- Length (Game.Deck (P1))) >= Count_Type ...
                Append (Game.Deck (Game.Last_Winner),
                        Game.Drawn_Card (Game.Last_Winner));
                Append (Game.Deck (Game.Last_Winner),
