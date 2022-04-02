@@ -111,7 +111,12 @@ procedure December_19 is
    end Get_Input;
 
    procedure Build_Products (Rule_List : in Rule_Lists.Map;
-                            Product_List : Out Product_Lists.Map) is
+                             Product_List : Out Product_Lists.Map) is
+
+      -- Starting from the rules which are symbols. All possible products of
+      -- each rule are built, that is, starting from the bottom up. This
+      -- continues until all possible products of rule 0 have been built. There
+      -- exactly 128**3 products of rule 0
 
       package QI is new Ada.Containers.Synchronized_Queue_Interfaces (Rule_Ids);
       package Rule_Queues is new
@@ -121,6 +126,9 @@ procedure December_19 is
       function All_Products_Exist (Product_List : in Product_Lists.Map;
                                    Alternative_Rule : in Alternative_Rules)
                                    return Boolean is
+
+         -- Returns true if the products of all the predecessor rules have been
+         -- calculated.
 
          Result : Boolean := True;
 
@@ -137,6 +145,9 @@ procedure December_19 is
       end All_Products_Exist;
 
       function Expand (Set_L, Set_R : in Products.Set) return Products.set is
+
+         -- For each element in Set_L and each element in Set_R the
+         -- concatination of all combinations is returned.
 
          Result : Products.Set := Products.Empty_Set;
 
@@ -206,6 +217,88 @@ procedure December_19 is
       end loop; -- Rule_Queue.Current_Use > 0
    end Build_Products;
 
+   function Part_Two (Product_List : in Product_Lists.Map;
+                      Message_Set : in Products.Set) return Natural is
+
+      -- 0:   8    | 11
+      -- 8:  42    | 42 8
+      -- 11: 42 31 | 42 11 31
+      -- An observation from Megatrends was that all strings satisfying rules
+      -- 31 and 42 are eight characters long.
+      -- My observation is that the intersection of strings satisfying both
+      -- rules is empty.
+      -- rule 0 is one instance of rule 8 followed by one instance of rule ll.
+      -- It would appear that starting from the back end is simplest. There must
+      -- at least one or more instances 31 preceded by an equal number of
+      -- instances of 42. Once all the 31 instances are removed along with the
+      -- matching 42 instances, there must be one or instances of 42 remaining
+      -- for the message to be valid. Note stopping the calculation of products
+      -- at rules 31 and 42 followed by applying a similar approach to part 1
+      -- would be much faster and require less storage!
+
+      String_8_Length : constant Positive := 8;
+
+      procedure String_8 (Current_Message : in out Unbounded_String;
+                          Sub_String : out Unbounded_String) is
+
+      begin -- String_8
+         Sub_String :=
+           Unbounded_Slice (Current_Message,
+                            Length (Current_Message) - String_8_Length + 1,
+                            Length (Current_Message));
+         Delete (Current_Message,
+                 Length (Current_Message) - String_8_Length + 1,
+                 Length (Current_Message));
+      end String_8;
+
+      Count : Natural := 0;
+      Count_31_42 : Natural;
+      Current_Message, Sub_String : Unbounded_String;
+      Rule_11_Finished, More_31, Valid : Boolean;
+
+   begin -- Part_Two
+      for M in Iterate (Message_Set) loop
+         Count_31_42 := 0;
+         Rule_11_Finished := False;
+         More_31 := True;
+         Valid := True;
+         Current_Message := Message_Set (M);
+         -- Rule 11 balanced 42 and 31 e.g. 42 31 or 42 42 31 31 etc.
+         while Length (Current_Message) > 0 and not Rule_11_Finished loop
+            String_8 (Current_Message, Sub_String);
+            If More_31 then
+               if Contains (Product_List (31), Sub_String) then
+                  Count_31_42 := Count_31_42 + 1;
+               elsif Contains (Product_List (42), Sub_String) and
+                 Count_31_42 > 0 then
+                  Count_31_42 := Count_31_42 - 1;
+                  More_31 := False;
+               else
+                  Valid := False;
+               end if; -- Contains (Product_List (31), Sub_String)
+            else
+               if Contains (Product_List (42), Sub_String) and
+                 Count_31_42 > 0 then
+                  Count_31_42 := Count_31_42 - 1;
+               else
+                  Valid := False;
+               end if; -- Contains (Product_List (42), Sub_String) and ...
+            end if; -- More_31
+            Rule_11_Finished := Count_31_42 = 0;
+         end loop; -- Length (Current_Message) > 0 and not Rule_11_Finished
+         Valid := Valid and Length (Current_Message) >= String_8_Length;
+         -- Rule 8 one or more instances of rule 42
+         while Length (Current_Message) > 0 loop
+            String_8 (Current_Message, Sub_String);
+            Valid := Valid and Contains (Product_List (42), Sub_String);
+         end loop; -- Length (Current_Message) > 0
+         if Valid then
+            Count := Count + 1;
+         end if; -- Valid
+      end loop; -- M in Iterate (Message_Set)
+      return Count;
+   end Part_Two;
+
    Rule_List : Rule_Lists.Map;
    Product_List : Product_Lists.Map;
    Message_Set, Valid_Set: Products.Set;
@@ -215,5 +308,8 @@ begin -- December_19
    Build_Products (Rule_List, Product_List);
    Valid_Set := Intersection (Product_List (0), Message_Set);
    Put_Line ("Part One (Valid messages)" & Length (Valid_Set)'Img);
+   Put_CPU_Time;
+   Put_Line ("Part Two (Valid messages)" &
+               Part_Two (Product_List, Message_Set)'Img);
    Put_CPU_Time;
 end December_19;
